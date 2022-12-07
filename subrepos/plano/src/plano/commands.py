@@ -43,7 +43,7 @@ class PlanoTestCommand(BaseCommand):
         self.parser.add_argument("-e", "--exclude", metavar="PATTERN", action="append", default=[],
                                  help="Do not run tests with names matching PATTERN (repeatable)")
         self.parser.add_argument("-m", "--module", action="append", default=[],
-                                 help="Collect tests from MODULE.  This option can be repeated.")
+                                 help="Collect tests from MODULE (repeatable)")
         self.parser.add_argument("-l", "--list", action="store_true",
                                  help="Print the test names and exit")
         self.parser.add_argument("--enable", metavar="PATTERN", action="append", default=[],
@@ -102,7 +102,7 @@ class PlanoCommand(BaseCommand):
 
         if self.planofile is None:
             self.pre_parser.add_argument("-f", "--file",
-                                         help="Load commands from FILE (default 'Planofile' or '.planofile')")
+                                         help="Load commands from FILE (default 'Planofile' or '.plano.py')")
 
         self.parser = _argparse.ArgumentParser(parents=(self.pre_parser,),
                                                description=description, add_help=False, allow_abbrev=False)
@@ -110,19 +110,10 @@ class PlanoCommand(BaseCommand):
         self.bound_commands = _collections.OrderedDict()
         self.running_commands = list()
 
-        self.default_command_name = None
-        self.default_command_args = None
-        self.default_command_kwargs = None
-
         self.passthrough_args = None
 
         global _plano_command
         _plano_command = self
-
-    def set_default_command(self, name, *args, **kwargs):
-        self.default_command_name = name
-        self.default_command_args = args
-        self.default_command_kwargs = kwargs
 
     def parse_args(self, args):
         pre_args, _ = self.pre_parser.parse_known_args(args)
@@ -141,12 +132,7 @@ class PlanoCommand(BaseCommand):
         self.command_args = list()
         self.command_kwargs = dict()
 
-        if args.command is None:
-            if self.default_command_name is not None:
-                self.selected_command = self.bound_commands[self.default_command_name]
-                self.command_args = self.default_command_args
-                self.command_kwargs = self.default_command_kwargs
-        else:
+        if args.command is not None:
             self.selected_command = self.bound_commands[args.command]
 
             if not self.selected_command.passthrough and self.passthrough_args:
@@ -216,7 +202,8 @@ class PlanoCommand(BaseCommand):
         self._bind_commands(scope)
 
     def _find_planofile(self, dir):
-        for name in ("Planofile", ".planofile"):
+        # XXX .planofile remains temporarily for backward compatibility
+        for name in ("Planofile", ".plano.py", ".planofile"):
             path = join(dir, name)
 
             if is_file(path):

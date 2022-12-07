@@ -716,30 +716,15 @@ def prepend_lines(file, lines):
     return file
 
 def tail_lines(file, count):
-    assert count >= 0
+    assert count >= 0, count
 
-    file = expand(file)
+    lines = read_lines(file)
 
-    with open(file) as f:
-        pos = count + 1
-        lines = list()
-
-        while len(lines) <= count:
-            try:
-                f.seek(-pos, 2)
-            except IOError:
-                f.seek(0)
-                break
-            finally:
-                lines = f.readlines()
-
-            pos *= 2
-
-        return lines[-count:]
+    return lines[-count:]
 
 def replace_in_file(file, expr, replacement, count=0):
     file = expand(file)
-    write(file, replace(read(file), expr, replacement, count=count))
+    return write(file, replace(read(file), expr, replacement, count=count))
 
 def concatenate(file, input_files):
     file = expand(file)
@@ -755,6 +740,8 @@ def concatenate(file, input_files):
 
             with open(input_file, "rb") as inf:
                 _shutil.copyfileobj(inf, f)
+
+    return file
 
 ## Iterable operations
 
@@ -1419,7 +1406,7 @@ class PlanoProcessError(_subprocess.CalledProcessError, PlanoError):
 def _default_sigterm_handler(signum, frame):
     for proc in _child_processes:
         if proc.poll() is None:
-            proc.terminate()
+            kill(proc, quiet=True)
 
     exit(-(_signal.SIGTERM))
 
@@ -2131,7 +2118,12 @@ def command(_function=None, name=None, args=None, parent=None, passthrough=False
             command = app.bound_commands[self.name]
 
             if command is not self:
+                # The command bound to this name has been overridden.
+                # This happens when a parent command invokes a peer
+                # command that is overridden.
+
                 command(*args, **kwargs)
+
                 return
 
             debug("Running {} {} {}".format(self, args, kwargs))
