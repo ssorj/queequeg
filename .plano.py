@@ -45,12 +45,14 @@ def clean():
     """
     Remove build artifacts and output files
     """
+    remove("queequeg")
     remove("perf.data")
     remove("perf.data.old")
     remove("flamegraph.html")
     remove("flamegraph.html.old")
     remove("transfers.csv")
     remove("transfers.csv.old")
+    remove(find(".", "__pycache__"))
 
 @command
 def build():
