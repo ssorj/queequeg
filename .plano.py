@@ -17,6 +17,8 @@
 # under the License.
 #
 
+from plano import *
+
 standard_args = (
     CommandArgument("duration", default=5, positional=False,
                     help="The time to run (excluding warmup) in seconds"),
