@@ -100,7 +100,7 @@ def stat(duration, warmup):
 
     with temp_file() as output:
         def inner(pids):
-            run(f"perf stat --detailed --pid {','.join(pids)} sleep {duration}", output=output)
+            run(f"perf stat --detailed --pid {pids} sleep {duration}", output=output)
 
         try:
             run_outer(inner, warmup)
@@ -126,8 +126,7 @@ def flamegraph(duration, warmup):
             if exists("flamegraph.html"):
                 move("flamegraph.html", "flamegraph.html.old")
 
-            # run(f"perf script flamegraph --freq 97 --call-graph lbr --pid {pids} sleep {duration}", stdout=output)
-            run(f"perf script flamegraph --freq 97 --call-graph dwarf --pid {pids} sleep {duration}", stdout=output)
+            run(f"perf script flamegraph --freq 997 --call-graph fp --pid {pids} sleep {duration}", stdout=output)
 
         try:
             run_outer(inner, warmup)
@@ -145,8 +144,7 @@ def record(duration, warmup):
 
     with temp_file() as output:
         def inner(pids):
-            # run(f"perf record --freq 97 --call-graph lbr --pid {pids} sleep {duration}", output=output)
-            run(f"perf record --freq 97 --call-graph dwarf --pid {pids} sleep {duration}", output=output)
+            run(f"perf record --freq 997 --call-graph fp --pid {pids} sleep {duration}", output=output)
 
         try:
             run_outer(inner, warmup)
